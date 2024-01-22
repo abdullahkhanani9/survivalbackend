@@ -15,11 +15,7 @@ api = Api(memes_api)
 class MemesAPI:     
     class TopText(Resource):  # User API operation for Create, Read.  THe Update, Delete methods need to be implemeented
         def get(self, top_text): # Create method
-            url = f"https://imaad08.github.io/tri-2-csp/2024/01/16/Temp_Frontend_IPYNB_2_.html"
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                return jsonify(data)
+           return top_text
     class BottomText(Resource):
         def get(self, bottom_text):
             bottomText = bottom_text
