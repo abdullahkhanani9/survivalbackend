@@ -18,7 +18,8 @@ class MemesAPI:
            return top_text
     class BottomText(Resource):
         def get(self, bottom_text):
-           return bottom_text
+            bottomText = bottom_text
+        
     
     api.add_resource(TopText, '/get_text/<top_text>')
     api.add_resource(BottomText, '/get_text/<bottom_text>')
