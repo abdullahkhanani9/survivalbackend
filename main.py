@@ -2,9 +2,9 @@ import threading
 
 # import "packages" from flask
 from flask import render_template, jsonify # import render_template from "public" flask libraries
-
+from flask.cli import AppGroup
 # import "packages" from "this" project
-from __init__ import app,db  # Definitions initialization
+from __init__ import app, db  # Definitions initialization
 from model.users import initUsers
 from model.players import initPlayers
 
@@ -42,14 +42,21 @@ def index():
 @app.route('/table/')  # connects /stub/ URL to stub() function
 def table():
     return render_template("table.html")
+@app.route('/api/users/create', methods=['OPTIONS'])
+def handle_preflight():
+    response = jsonify({'message': 'Preflight request received'})
+    response.headers.add('Access-Control-Allow-Origin', 'https://imaad08.github.io', 'http://127.0.0.1:4100')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'POST')
+    return response, 200
 
-@app.before_request
-def before_request():
-    # Check if the request came from a specific origin
-    allowed_origin = request.headers.get('Origin')
-    if allowed_origin in ['http://localhost:4100', 'http://127.0.0.1:4100', 'https://nighthawkcoders.github.io']:
-        cors._origins = allowed_origin
-
+@app.route('/api/users/', methods=['POST'])
+def handle_more_preflight():
+    response = jsonify({'message': 'Preflight request received'})
+    response.headers.add('Access-Control-Allow-Origin', 'https://imaad08.github.io', 'http://127.0.0.1:4100')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'POST')
+    return response, 200
 # Create an AppGroup for custom commands
 custom_cli = AppGroup('custom', help='Custom commands')
 
@@ -65,4 +72,5 @@ app.cli.add_command(custom_cli)
 # this runs the application on the development server
 if __name__ == "__main__":
     # change name for testing
+    cors = CORS(app)
     app.run(debug=True, host="0.0.0.0", port="8086")
