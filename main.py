@@ -39,6 +39,7 @@ def page_not_found(e):
 def index():
     return render_template("index.html")
 
+    
 @app.route('/table/')  # connects /stub/ URL to stub() function
 def table():
     return render_template("table.html")
@@ -52,6 +53,14 @@ def handle_preflight():
 
 @app.route('/api/users/', methods=['POST'])
 def handle_more_preflight():
+    response = jsonify({'message': 'Preflight request received'})
+    response.headers.add('Access-Control-Allow-Origin', 'https://imaad08.github.io', 'http://127.0.0.1:4100')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'POST')
+    return response, 200
+
+@app.route('/api/users/authenticate', methods=['POST'])
+def handle_even_more_preflight():
     response = jsonify({'message': 'Preflight request received'})
     response.headers.add('Access-Control-Allow-Origin', 'https://imaad08.github.io', 'http://127.0.0.1:4100')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
