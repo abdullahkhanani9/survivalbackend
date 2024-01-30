@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import check_password_hash
 from flask_cors import CORS
 from auth_middleware import token_required
-
+from werkzeug.security import generate_password_hash
 from datetime import datetime
 
 from model.users import User
@@ -67,7 +67,43 @@ class UserAPI:
             users = User.query.all()    # read/extract all users from database
             json_ready = [user.read() for user in users]  # prepare output in json
             return jsonify(json_ready)  # jsonify creates Flask response object, more specific to APIs than json.dumps
-
+        
+    class _Delete(Resource):
+        # @token_required
+        def post(self):
+            body = request.get_json()
+            if not body:
+                return {
+                    "message": "Please provide user details",
+                    "data": None,
+                    "error": "Bad request"
+                }, 400
+            ''' Get Data '''
+            uid = body.get('uid')
+            if uid is None:
+                return {'message': f'User ID is missing'}, 400
+            password = body.get('password')
+                
+            ''' Find user '''
+            user = User.query.filter_by(_uid=uid).first()
+            if user is None or not user.is_password(password):
+                return {'message': f"Invalid user id or password"}, 400
+            if user:
+                try:
+                    ''' Delete user from database '''
+                    user.delete()
+                    return {'message': f'Successfully deleted user {uid}'}
+                except Exception as e:
+                    return {
+                        "error": "Something went wrong",
+                        "message": str(e)
+                    }, 500
+            return {
+                "message": "Error deleting user!",
+                "data": None,
+                "error": "Unauthorized"
+            }, 404
+            
     class _Create(Resource):
         def post(self):
             body = request.get_json()
@@ -183,7 +219,7 @@ class UserAPI:
     api.add_resource(Login, '/login')
     api.add_resource(Logout, '/logout')
     api.add_resource(_Create, '/create')
-    
+    api.add_resource(_Delete, '/delete')
     
     
     
