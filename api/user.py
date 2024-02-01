@@ -36,10 +36,11 @@ class UserAPI:
             # look for password and dob
             password = body.get('password')
             dob = body.get('dob')
+            email = body.get('email')
 
             ''' #1: Key code block, setup USER OBJECT '''
             uo = User(name=name, 
-                      uid=uid)
+                      uid=uid, email=email)
             
             ''' Additional garbage error checking '''
             # set password if provided
@@ -109,12 +110,14 @@ class UserAPI:
             name = body.get('name')
             uid = body.get('uid')
             password = body.get('password')
+            email = body.get('email')
             if uid is not None:
-                new_user = User(name=name, uid=uid, password=password)
-            user = new_user.create()
-            if user:
-                return user.read()
-            return {'message': f'Processed {name}, either a format error or User ID {uid} is duplicate'}, 400
+                new_user = User(name=name, uid=uid, email=email, password=password)
+                user = new_user.create()
+                if user:
+                    return user.read()
+                return {'message': f'Processed {name}, either a format error or User ID {uid} is duplicate'}, 400
+
 
         
     class _Security(Resource):
@@ -150,9 +153,7 @@ class UserAPI:
                                 secure=True,
                                 httponly=True,
                                 path='/',
-                                samesite='None'  # This is the key part for cross-site requests
-
-                                # domain="frontend.com"
+                                samesite='None'  
                                 )
                         return resp
                     except Exception as e:
