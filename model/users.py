@@ -17,22 +17,22 @@ class User(db.Model):
     _name = db.Column(db.String(255), unique=False, nullable=False)
     _uid = db.Column(db.String(255), unique=True, nullable=False)
     _password = db.Column(db.String(255), unique=False, nullable=False)
-    _email = db.Column(db.String(255), unique=True, nullable=False)
+    _zipcode = db.Column(db.String(255), unique=True, nullable=False)
 
 
-    def __init__(self, name, uid, email, password="123qwerty" ):
+    def __init__(self, name, uid, zipcode, password="123qwerty" ):
         self._name = name
         self._uid = uid
-        self._email = email
+        self._zipcode = zipcode
         self.set_password(password)
 
     @property
-    def email(self):
-        return self._email
+    def zipcode(self):
+        return self._zipcode
 
-    @email.setter
-    def email(self, email):
-        self._email = email
+    @zipcode.setter
+    def zipcode(self, zipcode):
+        self._zipcode = zipcode
 
     @property
     def name(self):
@@ -84,7 +84,7 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "uid": self.uid,
-            "email": self.email,
+            "zipcode": self.zipcode,
         }
 
     def update(self, name="", uid="", password=""):
@@ -115,7 +115,7 @@ def initUsers():
 
         """Tester data for table"""
         users_data = [
-    {'name': 'Thomas Edison', 'uid': 'toby', 'email': 'thomas@example.com', 'password': '123toby'},
+    {'name': 'Thomas Edison', 'uid': 'toby', 'zipcode': 'thomas@example.com', 'password': '123toby'},
     ]
 
 
@@ -126,14 +126,14 @@ def initUsers():
                 print(f"User with _uid '{user_data['uid']}' already exists. Updating user data.")
                 existing_user.update(
                     name=user_data['name'],
-                    email=user_data['email'],
+                    zipcode=user_data['zipcode'],
                     password=user_data['password'],
                 )
             else:
                 new_user = User(
                     name=user_data['name'],
                     uid=user_data['uid'],
-                    email=user_data['email'],
+                    zipcode=user_data['zipcode'],
                     password=user_data['password'],
                 )
                 db.session.add(new_user)

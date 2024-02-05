@@ -38,7 +38,7 @@ class Player(db.Model):
     def name(self, name):
         self._name = name
     
-    # a getter method, extracts email from object
+    # a getter method, extracts zipcode from object
     @property
     def uid(self):
         return self._uid
@@ -155,4 +155,4 @@ def initPlayers():
             except IntegrityError:
                 '''fails with bad or duplicate data'''
                 db.session.remove()
-                print(f"Records exist, duplicate email, or error: {player.uid}")
+                print(f"Records exist, duplicate zipcode, or error: {player.uid}")
