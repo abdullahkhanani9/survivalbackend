@@ -18,14 +18,23 @@ class User(db.Model):
     _uid = db.Column(db.String(255), unique=True, nullable=False)
     _password = db.Column(db.String(255), unique=False, nullable=False)
     _email = db.Column(db.String(255), unique=True, nullable=False)
+    _role = db.Column(db.String(20), default="User", nullable=False)
 
-
-    def __init__(self, name, uid, email, password="123qwerty" ):
+    def __init__(self, name, uid, email, password="123qwerty", role="User" ):
         self._name = name
         self._uid = uid
         self.email = email
         self.set_password(password)
+        self._role = role
 
+    @property
+    def role(self):
+        return self._role
+    
+    @role.setter
+    def role(self, role):
+        self._role = role
+        
     @property
     def email(self):
         return self.email
@@ -52,6 +61,9 @@ class User(db.Model):
         
     def is_uid(self, uid):
         return self._uid == uid
+    
+    def is_admin(self):
+        return self._role == "Admin"
     
     @property
     def password(self):
@@ -85,6 +97,7 @@ class User(db.Model):
             "name": self.name,
             "uid": self.uid,
             "email": self.email,
+            "role": self.role,
         }
 
     def update(self, name="", uid="", password=""):
@@ -115,7 +128,7 @@ def initUsers():
 
         """Tester data for table"""
         users_data = [
-    {'name': 'Thomas Edison', 'uid': 'toby', 'email': 'thomas@example.com', 'password': '123toby'},
+    {'name': 'Thomas Edison', 'uid': 'toby', 'email': 'thomas@example.com', 'password': '123toby', 'role':'Admin'},
     ]
 
 
