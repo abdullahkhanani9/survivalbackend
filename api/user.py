@@ -36,11 +36,11 @@ class UserAPI:
             # look for password and dob
             password = body.get('password')
             dob = body.get('dob')
-            zipcode = body.get('zipcode')
+            email = body.get('email')
 
             ''' #1: Key code block, setup USER OBJECT '''
             uo = User(name=name, 
-                      uid=uid, zipcode=zipcode)
+                      uid=uid, email=email)
             
             ''' Additional garbage error checking '''
             # set password if provided
@@ -110,9 +110,9 @@ class UserAPI:
             name = body.get('name')
             uid = body.get('uid')
             password = body.get('password')
-            zipcode = body.get('zipcode')
+            email = body.get('email')
             if uid is not None:
-                new_user = User(name=name, uid=uid, zipcode=zipcode, password=password)
+                new_user = User(name=name, uid=uid, email=email, password=password)
                 user = new_user.create()
                 if user:
                     return user.read()
