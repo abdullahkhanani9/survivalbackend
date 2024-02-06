@@ -4,6 +4,7 @@ from flask import request, abort
 from flask import current_app
 from model.users import User
 
+
 def token_required(roles=None):
     def decorator(f):
         @wraps(f)
