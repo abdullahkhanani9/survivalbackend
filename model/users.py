@@ -41,7 +41,7 @@ class User(db.Model):
 
     @email.setter
     def email(self, email):
-        self.email = email
+        self._email = email
 
     @property
     def name(self):
