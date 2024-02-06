@@ -23,7 +23,7 @@ class User(db.Model):
     def __init__(self, name, uid, email, password="123qwerty", role="User" ):
         self._name = name
         self._uid = uid
-        self.email = email
+        self._email = email
         self.set_password(password)
         self._role = role
 
