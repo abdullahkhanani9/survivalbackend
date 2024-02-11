@@ -37,7 +37,7 @@ class User(db.Model):
         
     @property
     def email(self):
-        return self.email
+        return self._email
 
     @email.setter
     def email(self, email):

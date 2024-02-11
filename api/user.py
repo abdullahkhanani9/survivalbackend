@@ -67,6 +67,19 @@ class UserAPI:
             users = User.query.all()    # read/extract all users from database
             json_ready = [user.read() for user in users]  # prepare output in json
             return jsonify(json_ready)  # jsonify creates Flask response object, more specific to APIs than json.dumps
+        @token_required
+        def put(self, current_user):
+            body = request.get_json() # get the body of the request
+            uid = body.get('uid') # get the UID (Know what to reference)
+            dob = body.get('dob')
+            name = body.get('name')
+            email = body.get('email')
+            users = User.query.all()
+            for user in users:
+                if user.uid == uid:
+                    user.update(name,'','',email)
+            return f"{user.read()} Updated"
+
     class _Delete(Resource):
         # @token_required
         def post(self):
@@ -102,7 +115,45 @@ class UserAPI:
                 "data": None,
                 "error": "Unauthorized"
             }, 404
-            
+
+    class _Update(Resource):
+        @token_required
+        def put(self, current_user):
+            try:
+                body = request.get_json()
+                if not body:
+                    return {
+                        "message": "Please provide user details",
+                        "data": None,
+                        "error": "Bad request"
+                    }, 400
+                ''' Get Data '''
+                uid = body.get('uid')
+                if uid is None:
+                    return {'message': f'User ID is missing'}, 400
+                
+                ''' Find user '''
+                user = User.query.filter_by(_uid=uid).first()
+                if user:
+                    if 'name' in body:
+                        user.name = body['name']
+                    if 'password' in body:
+                        user.set_password(body['password'])
+                    if 'email' in body:
+                        user.email = body['email']
+                    
+                    user.update()
+                    
+                    return {'message': f'Successfully updated user {uid}'}
+                else:
+                    return {'message': f'User with ID {uid} not found'}, 404
+                
+            except Exception as e:
+                return {
+                        "message": "Something went wrong!",
+                        "error": str(e),
+                        "data": None
+                }, 500
     class _Create(Resource):
         def post(self):
             body = request.get_json()
@@ -220,6 +271,6 @@ class UserAPI:
     api.add_resource(Logout, '/logout')
     api.add_resource(_Create, '/create')
     api.add_resource(_Delete, '/delete')
-    
+    api.add_resource(_Update, '/update')
     
     
