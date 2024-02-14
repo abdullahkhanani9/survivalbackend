@@ -13,13 +13,13 @@ meme_forge_api = Blueprint('meme_forge_api', __name__,
                    url_prefix='/api/memeforge')
 
 api = Api(meme_forge_api)
-CORS(meme_forge_api, resources={r"/api/*": {"origins": "*"}})
+
 class MemeForgeAPI:
 
     class _MemeMaker(Resource):
         def post(self):
             data = request.get_json()
-            base64_image = data['base64image']
+            base64_image = data['base64data']
             top_text = data['top_text']
             bottom_text = data['bottom_text']
 
