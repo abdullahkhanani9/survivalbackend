@@ -9,3 +9,4 @@ Flask_Restful
 Flask_Cors
 PyJWT
 Pillow
+ipython
