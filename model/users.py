@@ -128,7 +128,7 @@ def initUsers():
 
         """Tester data for table"""
         users_data = [
-    {'name': 'Thomas Edison', 'uid': 'toby', 'email': 'thomas@example.com', 'password': '123toby', 'role':'Admin'},
+    {'name': 'Imaad Muzaffer', 'uid': 'imaad', 'email': 'imaad@example.com', 'password': '123imaad', 'role':'Admin'},
     ]
 
 
