@@ -1,81 +1,73 @@
-import pandas as pd
+# import "packages" from flask
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+
+# import "packages" from "this" project
 from sklearn.preprocessing import OneHotEncoder
-import numpy as np
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
-import ssl
+import pandas as pd
 
-# Disable SSL certificate verification
-ssl._create_default_https_context = ssl._create_unverified_context
-
-# Load the titanic dataset
-titanic_data = sns.load_dataset('titanic')
-
-# Preprocess the data
-td = titanic_data.copy()
-td.drop(['alive', 'who', 'adult_male', 'class', 'embark_town', 'deck'], axis=1, inplace=True)
-td.dropna(inplace=True)
-td['sex'] = td['sex'].apply(lambda x: 1 if x == 'male' else 0)
-td['alone'] = td['alone'].apply(lambda x: 1 if x == True else 0)
+# setup Flask App
+app = Flask(__name__)
+CORS(app)
 
 # Encode categorical variables
 enc = OneHotEncoder(handle_unknown='ignore')
-enc.fit(td[['embarked']])
-onehot = enc.transform(td[['embarked']]).toarray()
-cols = ['embarked_' + val for val in enc.categories_[0]]
-td[cols] = pd.DataFrame(onehot)
-td.drop(['embarked'], axis=1, inplace=True)
-td.dropna(inplace=True)
 
-# Split data into train and test sets
-X = td.drop('survived', axis=1)
-y = td['survived']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Preprocess the data
+def preprocess_data(passenger_data):
+    # Convert data to DataFrame
+    passenger_df = pd.DataFrame(passenger_data)
 
-# Train a decision tree classifier
-dt = DecisionTreeClassifier()
-dt.fit(X_train, y_train)
+    # Encode 'sex' variable
+    passenger_df['sex'] = passenger_df['sex'].apply(lambda x: 1 if x == 'male' else 0)
 
-# Test the decision tree model
-y_pred_dt = dt.predict(X_test)
-accuracy_dt = accuracy_score(y_test, y_pred_dt)
-print('DecisionTreeClassifier Accuracy: {:.2%}'.format(accuracy_dt))
+    # Encode 'alone' variable
+    passenger_df['alone'] = passenger_df['alone'].apply(lambda x: 1 if x else 0)
 
-# Train a logistic regression model
-logreg = LogisticRegression()
-logreg.fit(X_train, y_train)
+    # Encode 'embarked' variable
+    onehot = enc.transform(passenger_df[['embarked']]).toarray()
+    cols = ['embarked_' + val for val in enc.categories_[0]]
+    passenger_df[cols] = pd.DataFrame(onehot)
 
-# Test the logistic regression model
-y_pred_lr = logreg.predict(X_test)
-accuracy_lr = accuracy_score(y_test, y_pred_lr)
-print('LogisticRegression Accuracy: {:.2%}'.format(accuracy_lr))
+    # Drop unnecessary columns
+    passenger_df.drop(['name', 'embarked'], axis=1, inplace=True)
 
-# Define a new passenger
-passenger = pd.DataFrame({
-    'name': ['Abdullah Khanani'],
-    'pclass': [1],
-    'sex': ['male'],
-    'age': [15],
-    'sibsp': [1],
-    'parch': [2],
-    'fare': [512],
-    'embarked': ['Q'],
-    'alone': [False]
-})
+    return passenger_df
 
-# Preprocess the new passenger data
-new_passenger = passenger.copy()
-new_passenger['sex'] = new_passenger['sex'].apply(lambda x: 1 if x == 'male' else 0)
-new_passenger['alone'] = new_passenger['alone'].apply(lambda x: 1 if x == True else 0)
-onehot = enc.transform(new_passenger[['embarked']]).toarray()
-cols = ['embarked_' + val for val in enc.categories_[0]]
-new_passenger[cols] = pd.DataFrame(onehot, index=new_passenger.index)
-new_passenger.drop(['name', 'embarked'], axis=1, inplace=True)
+# Load the machine learning model
+# Replace this with your model loading code
+# For demonstration purposes, using a placeholder
+def load_model():
+    pass
 
-# Predict survival probability for the new passenger using logistic regression
-dead_proba, alive_proba = np.squeeze(logreg.predict_proba(new_passenger))
-print('Death probability: {:.2%}'.format(dead_proba))
-print('Survival probability: {:.2%}'.format(alive_proba))
+# Make predictions using the loaded model
+def predict_survival(passenger_data):
+    # Preprocess the data
+    passenger_df = preprocess_data(passenger_data)
+
+    # Load the model
+    model = load_model()  # Load your machine learning model here
+
+    # Make predictions
+    # For demonstration purposes, returning placeholder results
+    return {'Survival probability': 0.75}
+
+# Define endpoint for prediction
+@app.route('/api/titanic/predict', methods=['POST'])
+def predict():
+    try:
+        # Get data from request
+        passenger_data = request.json
+
+        # Make predictions
+        result = predict_survival(passenger_data)
+
+        # Return predictions
+        return jsonify(result), 200
+    except Exception as e:
+        # Return error message
+        return jsonify({'error': str(e)}), 500
+
+# Run the Flask app
+if __name__ == '__main__':
+    app.run(debug=True, host='localhost', port=8086)
