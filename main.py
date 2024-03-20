@@ -1,53 +1,31 @@
-import threading
-from flask import render_template, request
-from flask.cli import AppGroup
-from __init__ import app, db, cors
-from api.user import user_api
-from api.player import player_api
-from api.titanic import titanic_api
-from model.users import initUsers
-from model.players import initPlayers
-from projects.projects import app_projects
+from flask import Flask, request, jsonify
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import OneHotEncoder
 
-# Initialize the SQLAlchemy object to work with the Flask app instance
-db.init_app(app)
+app = Flask(__name__)
 
-# Register URIs
-app.register_blueprint(user_api)
-app.register_blueprint(player_api)
-app.register_blueprint(app_projects)
-app.register_blueprint(titanic_api)
+# Load the logistic regression model
+logreg = LogisticRegression()
+# Load the one-hot encoder
+enc = OneHotEncoder(handle_unknown='ignore')
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
+# Load the Titanic dataset
+import seaborn as sns
+titanic_data = sns.load_dataset('titanic')
 
-@app.route('/')
-def index():
-    return render_template("index.html")
+# Preprocess the Titanic dataset
+def preprocess_data(data):
+    data.drop(['alive', 'who', 'adult_male', 'class', 'embark_town', 'deck'], axis=1, inplace=True)
+    data.dropna(inplace=True)
+    data['sex'] = data['sex'].apply(lambda x: 1 if x == 'male' else 0)
+    data['alone'] = data['alone'].apply(lambda x: 1 if x == True else 0)
+    enc.fit(data[['embarked']])
+    onehot = enc.transform(data[['embarked']]).toarray()
+    cols = ['embarked_' + val for val in enc.categories_[0]]
+    data[cols] = pd.DataFrame(onehot)
+    data.drop(['embarked'], axis=1, inplace=True)
+    data.dropna(inplace=True)
 
-@app.route('/table/')
-def table():
-    return render_template("table.html")
+preprocess_data(titanic_data)
 
-@app.before_request
-def before_request():
-    allowed_origin = request.headers.get('Origin')
-    if allowed_origin in ['http://localhost:4100', 'http://127.0.0.1:4100', 'https://nighthawkcoders.github.io']:
-        cors._origins = allowed_origin
-
-# Create an AppGroup for custom commands
-custom_cli = AppGroup('custom', help='Custom commands')
-
-# Define a command to generate data
-@custom_cli.command('generate_data')
-def generate_data():
-    initUsers()
-    initPlayers()
-
-# Register the custom command group with the Flask application
-app.cli.add_command(custom_cli)
-
-# Run the application
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port="8086")
+# Train the logistic regression
