@@ -38,6 +38,25 @@ class TitanicRegression:
         data[cols] = pd.DataFrame(onehot)
         data.drop(['embarked'], axis=1, inplace=True)
         data.dropna(inplace=True) # Drop rows with at least one missing value, after preparing the data
+    def predict_survival(self, data):
+        try:
+            passenger = pd.DataFrame([data]) 
+            passenger['sex'] = passenger['sex'].apply(lambda x: 1 if x == 'male' else 0)
+            passenger['alone'] = passenger['alone'].apply(lambda x: 1 if x else 0)
+
+            embarked_encoded = self.enc.transform(passenger[['embarked']].values.reshape(-1, 1))
+            passenger[self.encoded_cols] = embarked_encoded.toarray()
+            passenger.drop(['embarked', 'name'], axis=1, inplace=True)
+
+            dead_proba, alive_proba = np.squeeze(self.logreg.predict_proba(passenger))
+
+            return {
+                'Death probability': '{:.2%}'.format(dead_proba),
+                'Survival probability': '{:.2%}'.format(alive_proba)
+            }
+        except Exception as e:
+            return {'error': str(e)}
+
 
     def runDecisionTree(self):
         # more code here
