@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 import seaborn as sns
+import numpy as np
 
 # Define the TitanicRegression class
 class TitanicRegression:
@@ -16,7 +17,7 @@ class TitanicRegression:
         self.X_test = None
         self.y_train = None
         self.y_test = None
-        self.encoder = None
+        self.encoder = None  # Initialize encoder attribute
 
     def initTitanic(self):
         titanic_data = sns.load_dataset('titanic')
@@ -28,7 +29,7 @@ class TitanicRegression:
         data.drop(['alive', 'who', 'adult_male', 'class', 'embark_town', 'deck'], axis=1, inplace=True)
         data.dropna(inplace=True) # Drop rows with at least one missing value, after dropping unuseful columns
         data['sex'] = data['sex'].apply(lambda x: 1 if x == 'male' else 0)
-        data['alone'] = data['alone'].apply(lambda x: 1 if x == True else 0)
+        data['alone'] = data['alone'].apply(lambda x: 1 if x else 0)
 
         # Encode categorical variables
         enc = OneHotEncoder(handle_unknown='ignore')
@@ -38,24 +39,35 @@ class TitanicRegression:
         data[cols] = pd.DataFrame(onehot)
         data.drop(['embarked'], axis=1, inplace=True)
         data.dropna(inplace=True) # Drop rows with at least one missing value, after preparing the data
+        
+        # Store the encoder in the encoder attribute
+        self.encoder = enc
+
     def predict_survival(self, data):
         try:
             passenger = pd.DataFrame([data]) 
             passenger['sex'] = passenger['sex'].apply(lambda x: 1 if x == 'male' else 0)
             passenger['alone'] = passenger['alone'].apply(lambda x: 1 if x else 0)
 
-            embarked_encoded = self.enc.transform(passenger[['embarked']].values.reshape(-1, 1))
-            passenger[self.encoded_cols] = embarked_encoded.toarray()
+            embarked_encoded = self.encoder.transform(passenger[['embarked']].values.reshape(-1, 1))
+            passenger[self.encoder.get_feature_names_out(['embarked'])] = embarked_encoded.toarray()
             passenger.drop(['embarked', 'name'], axis=1, inplace=True)
 
-            dead_proba, alive_proba = np.squeeze(self.logreg.predict_proba(passenger))
+            probs = np.squeeze(self.logreg.predict_proba(passenger))
+            print("Probabilities:", probs)  # Add this line to print out the probabilities
+
+            death_proba = probs[0]  # Probability of death
+            survival_proba = probs[1]  # Probability of survival
 
             return {
-                'Death probability': '{:.2%}'.format(dead_proba),
-                'Survival probability': '{:.2%}'.format(alive_proba)
+                'Death probability': '{:.2%}'.format(death_proba),
+                'Survival probability': '{:.2%}'.format(survival_proba)
             }
         except Exception as e:
             return {'error': str(e)}
+
+    # Other methods...
+
 
 
     def runDecisionTree(self):

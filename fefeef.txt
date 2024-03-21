@@ -1,0 +1,18 @@
+predict(APIDATA)
+
+
+
+form 
+
+fields: Name, Age, 
+
+OnSubmit("POSTS this data to the API")
+
+THE API GRABS THIS DATA AND PASSES IT TimeoutError
+
+predict()
+
+predict():
+    fjnefjsff
+    
+    return: 

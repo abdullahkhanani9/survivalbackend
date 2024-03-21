@@ -115,7 +115,15 @@ class UserAPI:
                 "data": None,
                 "error": "Unauthorized"
             }, 404
-
+    class MLPrediction(Resource):
+        @token_required
+        def post(self):
+            try:
+                data = request.json
+                result = self.predict_survival(data)
+                return jsonify(result)
+            except Exception as e:
+                return jsonify({'error': str(e)})
     class _Update(Resource):
         @token_required
         def put(self, current_user):
@@ -272,5 +280,6 @@ class UserAPI:
     api.add_resource(_Create, '/create')
     api.add_resource(_Delete, '/delete')
     api.add_resource(_Update, '/update')
+
     
     
