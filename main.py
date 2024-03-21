@@ -1,73 +1,70 @@
+import threading
+
 # import "packages" from flask
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask import render_template,request  # import render_template from "public" flask libraries
+from flask.cli import AppGroup
+
 
 # import "packages" from "this" project
-from sklearn.preprocessing import OneHotEncoder
-import pandas as pd
+from __init__ import app, db, cors  # Definitions initialization
 
-# setup Flask App
-app = Flask(__name__)
-CORS(app)
 
-# Encode categorical variables
-enc = OneHotEncoder(handle_unknown='ignore')
+# setup APIs
 
-# Preprocess the data
-def preprocess_data(passenger_data):
-    # Convert data to DataFrame
-    passenger_df = pd.DataFrame(passenger_data)
+from api.user import user_api # Blueprint import api definition
+from api.player import player_api
+from api.titanic import titanic_api
+# database migrations
+from model.users import initUsers
+from model.players import initPlayers
 
-    # Encode 'sex' variable
-    passenger_df['sex'] = passenger_df['sex'].apply(lambda x: 1 if x == 'male' else 0)
+# setup App pages
+from projects.projects import app_projects # Blueprint directory import projects definition
 
-    # Encode 'alone' variable
-    passenger_df['alone'] = passenger_df['alone'].apply(lambda x: 1 if x else 0)
 
-    # Encode 'embarked' variable
-    onehot = enc.transform(passenger_df[['embarked']]).toarray()
-    cols = ['embarked_' + val for val in enc.categories_[0]]
-    passenger_df[cols] = pd.DataFrame(onehot)
+# Initialize the SQLAlchemy object to work with the Flask app instance
+db.init_app(app)
 
-    # Drop unnecessary columns
-    passenger_df.drop(['name', 'embarked'], axis=1, inplace=True)
+# register URIs
 
-    return passenger_df
+app.register_blueprint(user_api) # register api routes
+app.register_blueprint(player_api)
+app.register_blueprint(app_projects) # register app pages
+app.register_blueprint(titanic_api)
 
-# Load the machine learning model
-# Replace this with your model loading code
-# For demonstration purposes, using a placeholder
-def load_model():
-    pass
+@app.errorhandler(404)  # catch for URL not found
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
 
-# Make predictions using the loaded model
-def predict_survival(passenger_data):
-    # Preprocess the data
-    passenger_df = preprocess_data(passenger_data)
+@app.route('/')  # connects default URL to index() function
+def index():
+    return render_template("index.html")
 
-    # Load the model
-    model = load_model()  # Load your machine learning model here
+@app.route('/table/')  # connects /stub/ URL to stub() function
+def table():
+    return render_template("table.html")
 
-    # Make predictions
-    # For demonstration purposes, returning placeholder results
-    return {'Survival probability': 0.75}
+@app.before_request
+def before_request():
+    # Check if the request came from a specific origin
+    allowed_origin = request.headers.get('Origin')
+    if allowed_origin in ['http://localhost:4100', 'http://127.0.0.1:4100', 'https://nighthawkcoders.github.io']:
+        cors._origins = allowed_origin
 
-# Define endpoint for prediction
-@app.route('/api/titanic/predict', methods=['POST'])
-def predict():
-    try:
-        # Get data from request
-        passenger_data = request.json
+# Create an AppGroup for custom commands
+custom_cli = AppGroup('custom', help='Custom commands')
 
-        # Make predictions
-        result = predict_survival(passenger_data)
+# Define a command to generate data
+@custom_cli.command('generate_data')
+def generate_data():
+    initUsers()
+    initPlayers()
 
-        # Return predictions
-        return jsonify(result), 200
-    except Exception as e:
-        # Return error message
-        return jsonify({'error': str(e)}), 500
-
-# Run the Flask app
-if __name__ == '__main__':
-    app.run(debug=True, host='localhost', port=8086)
+# Register the custom command group with the Flask application
+app.cli.add_command(custom_cli)
+        
+# this runs the application on the development server
+if __name__ == "__main__":
+    # change name for testing
+    app.run(debug=True, host="0.0.0.0", port="8086")
