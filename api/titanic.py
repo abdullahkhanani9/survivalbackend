@@ -55,6 +55,7 @@ class TitanicAPI(Resource):
         try:
             data = request.json
             result = self.predict_survival(data)
+            print(jsonify(result))
             return jsonify(result)
         except Exception as e:
             return jsonify({'error': str(e)})
