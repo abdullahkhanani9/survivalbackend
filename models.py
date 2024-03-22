@@ -66,22 +66,6 @@ class TitanicRegression:
         except Exception as e:
             return {'error': str(e)}
 
-    # Other methods...
-
-
-
-    def runDecisionTree(self):
-        # more code here
-        pass
-
-    def runLogisticRegression(self):
-        # more code here
-        pass
-
-    def predict_survival(self, passenger_data):
-        # Method code here
-        pass
-
 # Initialize the Titanic model
 def initTitanic():
     global titanic_regression
